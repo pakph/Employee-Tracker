@@ -23,7 +23,7 @@ const start = [
         type: "list",
         name: "likeToDo",
         message: "What would you like to do?",
-        choices: ["Add a department", "Add a role", "Add a new employee", "View all employees",]
+        choices: ["Add a department", "Add a role", "Add a new employee", "View all departments", "View all employees", "View all roles", "Update an employee"]
     },
 ];
 
@@ -76,12 +76,35 @@ const addNewEmployee = [
     },
 ];
 
+const updateThisEmployee = [
+    {
+        type: "input",
+        name: "update",
+        message: "Enter the id of the employee that is being updated: "
+    },
+    {
+        type: "input",
+        name: "updateRole",
+        message: "Enter the new role id of the employee: "
+    }
+
+]
+
+
 
 function startApp () {
     inquirer.prompt(start).then(answer => {
         switch (answer.likeToDo) {
             case "View all employees":
-                viewAll();
+                viewEmployees();
+                break;
+
+            case "View all departments":
+                viewDepartments();
+                break;
+
+            case "View all roles":
+                viewRoles();
                 break;
 
             case "Add a department":
@@ -95,11 +118,31 @@ function startApp () {
             case "Add a new employee":
                 addEmployee();
                 break;
+                
+            case "Update an employee":
+                updateEmployee();
+                break;
         };
     });
 };
 
-function viewAll() {
+function viewDepartments() {
+    connection.query("SELECT * FROM department", function (err, data) {
+        if (err) throw err;
+        console.table(data);
+        startApp();
+    });
+};
+
+function viewRoles() {
+    connection.query("SELECT * FROM role", function (err, data) {
+        if (err) throw err;
+        console.table(data);
+        startApp();
+    });
+};
+
+function viewEmployees() {
     connection.query("SELECT * FROM employee", function (err, data) {
         if (err) throw err;
         console.table(data);
@@ -138,6 +181,20 @@ function addEmployee() {
             console.log ("Added new employee: " + answer.firstName + " " + answer.lastName);
             console.log ("Role ID: " + answer.roleID);
             console.log ("Manager ID: " + answer.managerID);
+            startApp();
+        });
+    });
+};
+
+function updateEmployee() {
+    inquirer.prompt(updateThisEmployee).then(answer => {
+        connection.query("SELECT * FROM employee WHERE id = ?", [answer.update], function (err, data) {
+            if (err) throw err;
+            console.table(data);
+        });
+        connection.query("UPDATE employee SET role_id = ? WHERE id = ?", [answer.updateRole, answer.update], function (err, data) {
+            if (err) throw err;
+            console.log("Role has been updated")
             startApp();
         });
     });
