@@ -23,7 +23,7 @@ const start = [
         type: "list",
         name: "likeToDo",
         message: "What would you like to do?",
-        choices: ["Add a department", "Add a role", "Add a new employee", "View all departments", "View all employees", "View all roles", "Update an employee"]
+        choices: ["Add a department", "Add a role", "Add a new employee", "View all departments", "View all employees", "View all roles", "Update an employee", "End"]
     },
 ];
 
@@ -90,8 +90,6 @@ const updateThisEmployee = [
 
 ]
 
-
-
 function startApp () {
     inquirer.prompt(start).then(answer => {
         switch (answer.likeToDo) {
@@ -122,6 +120,10 @@ function startApp () {
             case "Update an employee":
                 updateEmployee();
                 break;
+
+            case "End":
+                connection.end();
+                break;
         };
     });
 };
@@ -143,7 +145,11 @@ function viewRoles() {
 };
 
 function viewEmployees() {
-    connection.query("SELECT * FROM employee", function (err, data) {
+    var query = `SELECT employee.id, employee.first_name, employee.last_name, department.name AS department, role.title, role.salary 
+    FROM role 
+    INNER JOIN employee ON employee.id = role.id 
+    INNER JOIN department ON department.id = role.department_id`
+    connection.query(query, function (err, data) {
         if (err) throw err;
         console.table(data);
         startApp();
